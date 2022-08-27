@@ -69,6 +69,10 @@
 //! }
 //! ```
 
+#![deny(missing_debug_implementations)]
+#![deny(missing_docs)]
+#![forbid(unsafe_code)]
+
 /// app is a core module.
 /// It has App trait. Implement the App trait for your game objects.
 /// It also has run function. That is an entry point for starting the game.

@@ -9,7 +9,9 @@ use crate::update::KeyEvent;
 
 /// App trait should be implemented by all game objects.
 pub trait App {
+    /// update is responsible for updating game objects.
     fn update(&mut self, elapsed_time: f64, key_event: &KeyEvent);
+    /// render is responsible for rendering images on the canvas.
     fn render(&self, renderer: &Renderer);
 }
 
@@ -76,6 +78,7 @@ fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) {
 }
 
 /// AppConfig is a configuration for starting the game.
+#[derive(Debug)]
 pub struct AppConfig {
     canvas_id: String,
     canvas_width: f64,

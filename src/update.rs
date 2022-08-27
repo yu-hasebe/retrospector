@@ -1,4 +1,5 @@
 /// KeyEvent stores which key is down and which key is up.
+#[derive(Debug)]
 pub struct KeyEvent {
     enter: bool,
     arrow_left: bool,

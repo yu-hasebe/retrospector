@@ -34,6 +34,7 @@ pub fn clear(renderer: &Renderer) {
 }
 
 /// Renderer is responsible for depiction on the canvas.
+#[derive(Debug)]
 pub struct Renderer {
     context: web_sys::CanvasRenderingContext2d,
     canvas_width: f64,
@@ -70,6 +71,7 @@ impl Renderer {
 }
 
 /// Sprite is responsible for representing a sprite.
+#[derive(Debug)]
 pub struct Sprite {
     atlas: Rc<web_sys::HtmlImageElement>,
     sx: f64,
@@ -122,6 +124,7 @@ impl Sprite {
 }
 
 /// SpriteBuilder builds Sprites with the same atlas, width, and height.
+#[derive(Debug)]
 pub struct SpriteBuilder {
     atlas: Rc<web_sys::HtmlImageElement>,
     width: f64,
@@ -155,6 +158,7 @@ impl SpriteBuilder {
 }
 
 /// Location is responsible for specifing a location on a canvas.
+#[derive(Debug)]
 pub struct Location {
     dx: f64,
     dy: f64,
