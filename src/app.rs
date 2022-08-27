@@ -13,7 +13,7 @@ pub trait App {
     fn render(&self, renderer: &Renderer);
 }
 
-/// run is an entry point for the game execution.
+/// run is an entry point for starting the game.
 pub fn run<T: App + 'static>(app: T, config: AppConfig) -> Result<(), JsValue> {
     let document = web_sys::window().unwrap().document().unwrap();
     let canvas = document.get_element_by_id(&config.canvas_id).unwrap();

@@ -1,10 +1,43 @@
 use std::rc::Rc;
 
+/// draw_image depicts a given sprite at a specified location on the canvas.
+pub fn draw_image(renderer: &Renderer, sprite: Sprite, location: Location) {
+    let is_outside_of_canvas = location.dx + sprite.width < 0.0
+        || location.dx > renderer.canvas_width
+        || location.dy + sprite.height < 0.0
+        || location.dy > renderer.canvas_height;
+    if is_outside_of_canvas {
+        return;
+    }
+
+    renderer
+        .context
+        .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+            &sprite.atlas,
+            sprite.sx,
+            sprite.sy,
+            sprite.width,
+            sprite.height,
+            location.dx,
+            location.dy,
+            sprite.width,
+            sprite.height,
+        )
+        .unwrap();
+}
+
+/// clear clears the canvas.
+pub fn clear(renderer: &Renderer) {
+    renderer
+        .context
+        .clear_rect(0.0, 0.0, renderer.canvas_width, renderer.canvas_height);
+}
+
 /// Renderer is responsible for depiction on the canvas.
 pub struct Renderer {
-    context: web_sys::CanvasRenderingContext2d,
-    canvas_width: f64,
-    canvas_height: f64,
+    pub context: web_sys::CanvasRenderingContext2d,
+    pub canvas_width: f64,
+    pub canvas_height: f64,
 }
 
 impl Renderer {
@@ -19,52 +52,6 @@ impl Renderer {
             canvas_height,
         }
     }
-
-    /// render depicts a given sprite at a specified location on the canvas.
-    pub fn render(&self, sprite: Sprite, location: Location) {
-        let is_outside_of_canvas = location.dx + sprite.width < 0.0
-            || location.dx > self.canvas_width
-            || location.dy + sprite.height < 0.0
-            || location.dy > self.canvas_height;
-        if is_outside_of_canvas {
-            return;
-        }
-
-        self.context
-            .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
-                &sprite.atlas,
-                sprite.sx,
-                sprite.sy,
-                sprite.width,
-                sprite.height,
-                location.dx,
-                location.dy,
-                sprite.width,
-                sprite.height,
-            )
-            .unwrap();
-    }
-
-    /// clear clears the canvas.
-    pub fn clear(&self) {
-        self.context
-            .clear_rect(0.0, 0.0, self.canvas_width, self.canvas_height);
-    }
-
-    /// text depicts a text at a specified location on the canvas.
-    pub fn text(&self, text: &str, location: Location) {
-        let is_outside_of_canvas = location.dx < 0.0
-            || location.dx > self.canvas_width
-            || location.dy < 0.0
-            || location.dy > self.canvas_height;
-        if is_outside_of_canvas {
-            return;
-        }
-
-        self.context
-            .fill_text(text, location.dx, location.dy)
-            .unwrap();
-    }
 }
 
 /// Sprite is responsible for representing a sprite.
@@ -77,7 +64,6 @@ pub struct Sprite {
 }
 
 impl Sprite {
-    /// new returns an initialized Sprite.
     fn new(
         atlas: Rc<web_sys::HtmlImageElement>,
         sx: f64,
@@ -105,8 +91,14 @@ pub struct SpriteBuilder {
 impl SpriteBuilder {
     /// new returns an instantiated SpriteBuilder
     pub fn new(bytes: &[u8], extension: &str, width: f64, height: f64) -> Self {
-        let image = create_new_html_image_element(bytes, extension);
-        let atlas = Rc::new(image);
+        let html_image_element = web_sys::HtmlImageElement::new().unwrap();
+        let src = format!(
+            "data:image/{};base64,{}",
+            extension,
+            base64::encode(&bytes.to_vec())
+        );
+        html_image_element.set_src(&src);
+        let atlas = Rc::new(html_image_element);
         Self {
             atlas,
             width,
@@ -120,17 +112,6 @@ impl SpriteBuilder {
         let sy = row as f64 * self.height;
         Sprite::new(Rc::clone(&self.atlas), sx, sy, self.width, self.height)
     }
-}
-
-fn create_new_html_image_element(bytes: &[u8], extension: &str) -> web_sys::HtmlImageElement {
-    let html_image_element = web_sys::HtmlImageElement::new().unwrap();
-    let src = format!(
-        "data:image/{};base64,{}",
-        extension,
-        base64::encode(&bytes.to_vec())
-    );
-    html_image_element.set_src(&src);
-    html_image_element
 }
 
 /// Location is responsible for specifing a location on a canvas.
