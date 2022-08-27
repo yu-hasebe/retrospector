@@ -16,23 +16,16 @@ pub trait App {
 /// run is an entry point for starting the game.
 pub fn run<T: App + 'static>(app: T, config: AppConfig) -> Result<(), JsValue> {
     let document = web_sys::window().unwrap().document().unwrap();
-    let canvas = document.get_element_by_id(&config.canvas_id).unwrap();
-    let canvas: web_sys::HtmlCanvasElement = canvas.dyn_into::<web_sys::HtmlCanvasElement>()?;
-    canvas.set_width(config.canvas_width as u32);
-    canvas.set_height(config.canvas_height as u32);
-    let context = canvas
-        .get_context("2d")?
-        .unwrap()
-        .dyn_into::<web_sys::CanvasRenderingContext2d>()?;
-    let renderer = Renderer::new(context, config.canvas_width, config.canvas_height);
-
     let shared_key_event = Rc::new(RefCell::new(KeyEvent::new()));
     {
         let keydown_event = Rc::clone(&shared_key_event);
         let keydown_handler = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             keydown_event.borrow_mut().update_on_keydown(event);
         }) as Box<dyn FnMut(_)>);
-        add_event_listener_with_callback("keydown", keydown_handler.as_ref().unchecked_ref());
+        document.add_event_listener_with_callback(
+            "keydown",
+            keydown_handler.as_ref().unchecked_ref(),
+        )?;
         keydown_handler.forget();
     }
     {
@@ -40,9 +33,22 @@ pub fn run<T: App + 'static>(app: T, config: AppConfig) -> Result<(), JsValue> {
         let keyup_handler = Closure::wrap(Box::new(move |event: web_sys::KeyboardEvent| {
             keyup_event.borrow_mut().update_on_keyup(event);
         }) as Box<dyn FnMut(_)>);
-        add_event_listener_with_callback("keyup", keyup_handler.as_ref().unchecked_ref());
+        document
+            .add_event_listener_with_callback("keyup", keyup_handler.as_ref().unchecked_ref())?;
         keyup_handler.forget();
     }
+
+    let canvas = document
+        .get_element_by_id(&config.canvas_id)
+        .unwrap()
+        .dyn_into::<web_sys::HtmlCanvasElement>()?;
+    canvas.set_width(config.canvas_width as u32);
+    canvas.set_height(config.canvas_height as u32);
+    let context = canvas
+        .get_context("2d")?
+        .unwrap()
+        .dyn_into::<web_sys::CanvasRenderingContext2d>()?;
+    let renderer = Renderer::new(context, config.canvas_width, config.canvas_height);
 
     let shared_app = Rc::new(RefCell::new(app));
     let f = Rc::new(RefCell::new(None));
@@ -60,15 +66,6 @@ pub fn run<T: App + 'static>(app: T, config: AppConfig) -> Result<(), JsValue> {
     }
 
     Ok(())
-}
-
-fn add_event_listener_with_callback(type_: &str, listener: &js_sys::Function) {
-    web_sys::window()
-        .unwrap()
-        .document()
-        .unwrap()
-        .add_event_listener_with_callback(type_, listener)
-        .unwrap();
 }
 
 fn request_animation_frame(f: &Closure<dyn FnMut(f64)>) {
