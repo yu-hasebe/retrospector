@@ -1,0 +1,32 @@
+[package]
+name = "retrospector"
+description = "Super simple 2D game engine for WebAssembly"
+version = "0.1.0"
+authors = ["yu-hasebe <yuhasebe0821@gmail.com>"]
+categories = ["wasm"]
+readme = "README.md"
+edition = "2021"
+licence = "MIT"
+
+[lib]
+crate-type = ["rlib"]
+
+[profile.release]
+lto = true
+
+[dependencies]
+base64 = "0.13.0"
+js-sys = "0.3.59"
+wasm-bindgen = "0.2.82"
+
+[dependencies.web-sys]
+version = "0.3.59"
+features = [
+  'CanvasRenderingContext2d',
+  'Document',
+  'HtmlCanvasElement',
+  'HtmlImageElement',
+  'KeyboardEvent',
+  'KeyEvent',
+  'Window',
+]
