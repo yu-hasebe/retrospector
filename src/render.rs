@@ -2,26 +2,26 @@ use std::rc::Rc;
 
 /// draw_image depicts a given sprite at a specified location on the canvas.
 pub fn draw_image(renderer: &Renderer, sprite: Sprite, location: Location) {
-    let is_outside_of_canvas = location.dx + sprite.width < 0.0
-        || location.dx > renderer.canvas_width
-        || location.dy + sprite.height < 0.0
-        || location.dy > renderer.canvas_height;
+    let is_outside_of_canvas = location.dx() + sprite.width() < 0.0
+        || location.dx() > renderer.canvas_width()
+        || location.dy() + sprite.height() < 0.0
+        || location.dy() > renderer.canvas_height();
     if is_outside_of_canvas {
         return;
     }
 
     renderer
-        .context
+        .context()
         .draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
-            &sprite.atlas,
-            sprite.sx,
-            sprite.sy,
-            sprite.width,
-            sprite.height,
-            location.dx,
-            location.dy,
-            sprite.width,
-            sprite.height,
+            &sprite.atlas(),
+            sprite.sx(),
+            sprite.sy(),
+            sprite.width(),
+            sprite.height(),
+            location.dx(),
+            location.dy(),
+            sprite.width(),
+            sprite.height(),
         )
         .unwrap();
 }
@@ -29,15 +29,15 @@ pub fn draw_image(renderer: &Renderer, sprite: Sprite, location: Location) {
 /// clear clears the canvas.
 pub fn clear(renderer: &Renderer) {
     renderer
-        .context
-        .clear_rect(0.0, 0.0, renderer.canvas_width, renderer.canvas_height);
+        .context()
+        .clear_rect(0.0, 0.0, renderer.canvas_width(), renderer.canvas_height());
 }
 
 /// Renderer is responsible for depiction on the canvas.
 pub struct Renderer {
-    pub context: web_sys::CanvasRenderingContext2d,
-    pub canvas_width: f64,
-    pub canvas_height: f64,
+    context: web_sys::CanvasRenderingContext2d,
+    canvas_width: f64,
+    canvas_height: f64,
 }
 
 impl Renderer {
@@ -51,6 +51,21 @@ impl Renderer {
             canvas_width,
             canvas_height,
         }
+    }
+
+    /// context enalbes you to use the rendering context on the canvas.
+    pub fn context(&self) -> &web_sys::CanvasRenderingContext2d {
+        &self.context
+    }
+
+    /// canvas_width enalbes you to refer to that.
+    pub fn canvas_width(&self) -> f64 {
+        self.canvas_width
+    }
+
+    /// canvas_height enalbes you to refer to that.
+    pub fn canvas_height(&self) -> f64 {
+        self.canvas_height
     }
 }
 
@@ -78,6 +93,31 @@ impl Sprite {
             width,
             height,
         }
+    }
+
+    /// atlas is a set of sprites.
+    pub fn atlas(&self) -> Rc<web_sys::HtmlImageElement> {
+        Rc::clone(&self.atlas)
+    }
+
+    /// sx is a source x on the atlas.
+    pub fn sx(&self) -> f64 {
+        self.sx
+    }
+
+    /// sy is a source y on the atlas.
+    pub fn sy(&self) -> f64 {
+        self.sy
+    }
+
+    /// width is a length from sx on the atlas.
+    pub fn width(&self) -> f64 {
+        self.width
+    }
+
+    /// height is a length from sy on the atlas.
+    pub fn height(&self) -> f64 {
+        self.height
     }
 }
 
@@ -124,5 +164,15 @@ impl Location {
     /// new returns an initialized Location.
     pub fn new(dx: f64, dy: f64) -> Self {
         Self { dx, dy }
+    }
+
+    /// dx is a differential x from the left on the canvas.
+    pub fn dx(&self) -> f64 {
+        self.dx
+    }
+
+    /// dy is a differential y from the top on the canvas.
+    pub fn dy(&self) -> f64 {
+        self.dy
     }
 }
