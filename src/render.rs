@@ -1,14 +1,16 @@
-use std::rc::Rc;
+use std::{collections::HashMap, rc::Rc};
+
+use anyhow::{anyhow, ensure, Context, Result};
 
 /// draw_image depicts a given sprite at a specified location on the canvas.
-pub fn draw_image(renderer: &Renderer, sprite: Sprite, location: Location) {
-    let is_outside_of_canvas = location.dx() + sprite.width() < 0.0
-        || location.dx() > renderer.canvas_width()
-        || location.dy() + sprite.height() < 0.0
-        || location.dy() > renderer.canvas_height();
-    if is_outside_of_canvas {
-        return;
-    }
+pub fn draw_image(renderer: &Renderer, sprite: &Sprite, location: Location) -> Result<()> {
+    ensure!(
+        0.0 <= location.dx() + sprite.width()
+            && location.dx() <= renderer.canvas_width()
+            && 0.0 <= location.dy() + sprite.height()
+            && location.dy() <= renderer.canvas_height(),
+        "the sprite to draw is out of canvas"
+    );
 
     renderer
         .context()
@@ -23,7 +25,9 @@ pub fn draw_image(renderer: &Renderer, sprite: Sprite, location: Location) {
             sprite.width(),
             sprite.height(),
         )
-        .unwrap();
+        .map_err(|e| anyhow!("failed to draw image: {:?}", e))?;
+
+    Ok(())
 }
 
 /// clear clears the canvas.
@@ -123,18 +127,39 @@ impl Sprite {
     }
 }
 
-/// SpriteBuilder builds Sprites with the same atlas, width, and height.
+/// SpriteStore builds Sprites with the same atlas, width, and height.
 #[derive(Debug)]
-pub struct SpriteBuilder {
-    atlas: Rc<web_sys::HtmlImageElement>,
-    width: f64,
-    height: f64,
+pub struct SpriteStore {
+    store: HashMap<(i32, i32), Sprite>,
 }
 
-impl SpriteBuilder {
-    /// new returns an instantiated SpriteBuilder
-    pub fn new(bytes: &[u8], extension: &str, width: f64, height: f64) -> Self {
-        let html_image_element = web_sys::HtmlImageElement::new().unwrap();
+impl SpriteStore {
+    /// new returns an instantiated SpriteStore
+    pub fn new(
+        bytes: &[u8],
+        extension: &str,
+        width: i32,
+        height: i32,
+        tile_width: i32,
+        tile_height: i32,
+    ) -> Result<Self> {
+        ensure!(
+            width % tile_width == 0,
+            "width: {} should be divisible by tile_width: {}",
+            width,
+            tile_width,
+        );
+
+        ensure!(
+            height % tile_height == 0,
+            "height: {} should be divisible by tile_height: {}",
+            height,
+            tile_height
+        );
+
+        let html_image_element = web_sys::HtmlImageElement::new()
+            .map_err(|e| anyhow!("failed to create a new html image element: {:?}", e))?;
+
         let src = format!(
             "data:image/{};base64,{}",
             extension,
@@ -142,18 +167,31 @@ impl SpriteBuilder {
         );
         html_image_element.set_src(&src);
         let atlas = Rc::new(html_image_element);
-        Self {
-            atlas,
-            width,
-            height,
+
+        let col = width / tile_width;
+        let row = height / tile_height;
+        let mut store = HashMap::new();
+        for x in 0..col {
+            for y in 0..row {
+                let sprite = Sprite::new(
+                    Rc::clone(&atlas),
+                    (x * tile_width) as f64,
+                    (y * tile_height) as f64,
+                    tile_width as f64,
+                    tile_height as f64,
+                );
+                store.insert((x, y), sprite);
+            }
         }
+
+        Ok(Self { store })
     }
 
     /// sprite returns a specified Sprite on the atlas.
-    pub fn sprite(&self, col: i32, row: i32) -> Sprite {
-        let sx = col as f64 * self.width;
-        let sy = row as f64 * self.height;
-        Sprite::new(Rc::clone(&self.atlas), sx, sy, self.width, self.height)
+    pub fn sprite(&self, col: i32, row: i32) -> Result<&Sprite> {
+        self.store
+            .get(&(col, row))
+            .with_context(|| format!("col: {} or row: {} is out of the atlas", col, row))
     }
 }
 

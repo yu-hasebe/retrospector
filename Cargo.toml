@@ -15,6 +15,7 @@ crate-type = ["rlib"]
 lto = true
 
 [dependencies]
+anyhow = "1.0.63"
 base64 = "0.13.0"
 js-sys = "0.3.59"
 wasm-bindgen = "0.2.82"

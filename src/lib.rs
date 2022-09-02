@@ -4,7 +4,7 @@
 //! use wasm_bindgen::prelude::*;
 //!
 //! use retrospector::app::{run, App, AppConfig};
-//! use retrospector::render::{clear, draw_image, Location, Renderer, SpriteBuilder};
+//! use retrospector::render::{clear, draw_image, Location, Renderer, SpriteStore};
 //! use retrospector::update::KeyEvent;
 //!
 //! #[wasm_bindgen(start)]
@@ -17,17 +17,17 @@
 //! struct TestMock {
 //!     elapsed_time: f64,
 //!     text: String,
-//!     sprite_builder: SpriteBuilder,
+//!     sprite_store: SpriteStore,
 //! }
 //!
 //! impl TestMock {
 //!     fn new() -> Self {
 //!         let mock_bytes = vec![];
-//!         let sprite_builder = SpriteBuilder::new(&mock_bytes, "gif", 32.0, 32.0);
+//!         let sprite_store = SpriteStore::new(&mock_bytes, "gif", 640, 640, 32, 32).unwrap();
 //!         Self {
 //!             elapsed_time: 0.0,
 //!             text: String::from("test hello"),
-//!             sprite_builder,
+//!             sprite_store,
 //!         }
 //!     }
 //! }
@@ -48,10 +48,11 @@
 //!         // Before rendering, clear the canvas first.
 //!         clear(renderer);
 //!
-//!         // You can get a sprite from a sprite_builder.
-//!         let sprite = self.sprite_builder.sprite(0, 0);
-//!         // You can use the draw_image to draw sprites at the specified location on the canvas.
-//!         draw_image(renderer, sprite, Location::new(0.0, 0.0));
+//!         // You can get a sprite from a sprite_store.
+//!         if let Ok(sprite) = self.sprite_store.sprite(0, 0) {
+//!             // You can use the draw_image to draw sprites at the specified location on the canvas.
+//!             draw_image(renderer, &sprite, Location::new(0.0, 0.0));
+//!         }
 //!
 //!         let text = format!("elapsed time: {} ms", self.elapsed_time);
 //!         // You can use your own rendering functions.
