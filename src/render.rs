@@ -2,13 +2,13 @@ use std::rc::Rc;
 
 use anyhow::{anyhow, ensure, Context, Result};
 
-/// draw_image depicts a given sprite at a specified location on the canvas.
-pub fn draw_image(renderer: &Renderer, sprite: &Sprite, location: Location) -> Result<()> {
+/// draw_image depicts a given sprite at a specified position on the canvas.
+pub fn draw_image(renderer: &Renderer, sprite: &Sprite, position: Position) -> Result<()> {
     ensure!(
-        0.0 <= location.dx() + sprite.width()
-            && location.dx() <= renderer.canvas_width()
-            && 0.0 <= location.dy() + sprite.height()
-            && location.dy() <= renderer.canvas_height(),
+        0.0 <= position.dx() + sprite.width()
+            && position.dx() <= renderer.canvas_width()
+            && 0.0 <= position.dy() + sprite.height()
+            && position.dy() <= renderer.canvas_height(),
         "the sprite to draw is out of canvas"
     );
 
@@ -20,8 +20,8 @@ pub fn draw_image(renderer: &Renderer, sprite: &Sprite, location: Location) -> R
             sprite.sy(),
             sprite.width(),
             sprite.height(),
-            location.dx(),
-            location.dy(),
+            position.dx(),
+            position.dy(),
             sprite.width(),
             sprite.height(),
         )
@@ -221,15 +221,15 @@ impl SpriteStore {
     }
 }
 
-/// Location is responsible for specifing a location on a canvas.
+/// Position is responsible for specifing a position on a canvas.
 #[derive(Debug)]
-pub struct Location {
+pub struct Position {
     dx: f64,
     dy: f64,
 }
 
-impl Location {
-    /// new returns an initialized Location.
+impl Position {
+    /// new returns an initialized Position.
     pub fn new(dx: f64, dy: f64) -> Self {
         Self { dx, dy }
     }

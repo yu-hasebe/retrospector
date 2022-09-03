@@ -4,7 +4,7 @@
 //! use wasm_bindgen::prelude::*;
 //!
 //! use retrospector::app::{run, App, AppConfig};
-//! use retrospector::render::{clear, draw_image, Location, Renderer, SpriteStore};
+//! use retrospector::render::{clear, draw_image, Position, Renderer, SpriteStore};
 //! use retrospector::update::KeyEvent;
 //!
 //! #[wasm_bindgen(start)]
@@ -50,22 +50,22 @@
 //!
 //!         // You can get a sprite from a sprite_store.
 //!         if let Ok(sprite) = self.sprite_store.sprite(0) {
-//!             // You can use the draw_image to draw sprites at the specified location on the canvas.
-//!             draw_image(renderer, &sprite, Location::new(0.0, 0.0));
+//!             // You can use the draw_image to draw sprites at the specified position on the canvas.
+//!             draw_image(renderer, &sprite, Position::new(0.0, 0.0));
 //!         }
 //!
 //!         let text = format!("elapsed time: {} ms", self.elapsed_time);
 //!         // You can use your own rendering functions.
-//!         fill_text(renderer, &text, Location::new(0.0, 50.0));
-//!         fill_text(renderer, &self.text, Location::new(0.0, 100.0));
+//!         fill_text(renderer, &text, Position::new(0.0, 50.0));
+//!         fill_text(renderer, &self.text, Position::new(0.0, 100.0));
 //!     }
 //! }
 //!
 //! // You can define your own rendering functions like this.
-//! fn fill_text(renderer: &Renderer, text: &str, location: Location) {
+//! fn fill_text(renderer: &Renderer, text: &str, position: Position) {
 //!     renderer
 //!         .context()
-//!         .fill_text(text, location.dx(), location.dy())
+//!         .fill_text(text, position.dx(), position.dy())
 //!         .unwrap();
 //! }
 //! ```
