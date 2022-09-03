@@ -1,4 +1,4 @@
-use std::{collections::HashMap, rc::Rc};
+use std::rc::Rc;
 
 use anyhow::{anyhow, ensure, Context, Result};
 
@@ -130,7 +130,9 @@ impl Sprite {
 /// SpriteStore builds Sprites with the same atlas, width, and height.
 #[derive(Debug)]
 pub struct SpriteStore {
-    store: HashMap<(i32, i32), Sprite>,
+    store: Vec<Sprite>,
+    width_in_tile: usize,
+    height_in_tile: usize,
 }
 
 impl SpriteStore {
@@ -138,10 +140,10 @@ impl SpriteStore {
     pub fn new(
         bytes: &[u8],
         extension: &str,
-        width: i32,
-        height: i32,
-        tile_width: i32,
-        tile_height: i32,
+        width: u32,
+        height: u32,
+        tile_width: u32,
+        tile_height: u32,
     ) -> Result<Self> {
         ensure!(
             width % tile_width == 0,
@@ -159,7 +161,6 @@ impl SpriteStore {
 
         let html_image_element = web_sys::HtmlImageElement::new()
             .map_err(|e| anyhow!("failed to create a new html image element: {:?}", e))?;
-
         let src = format!(
             "data:image/{};base64,{}",
             extension,
@@ -168,11 +169,11 @@ impl SpriteStore {
         html_image_element.set_src(&src);
         let atlas = Rc::new(html_image_element);
 
-        let col = width / tile_width;
-        let row = height / tile_height;
-        let mut store = HashMap::new();
-        for x in 0..col {
-            for y in 0..row {
+        let width_in_tile = width / tile_width;
+        let height_in_tile = height / tile_height;
+        let mut store = vec![];
+        for y in 0..height_in_tile {
+            for x in 0..width_in_tile {
                 let sprite = Sprite::new(
                     Rc::clone(&atlas),
                     (x * tile_width) as f64,
@@ -180,18 +181,43 @@ impl SpriteStore {
                     tile_width as f64,
                     tile_height as f64,
                 );
-                store.insert((x, y), sprite);
+                store.push(sprite);
             }
         }
 
-        Ok(Self { store })
+        Ok(Self {
+            store,
+            width_in_tile: width_in_tile as usize,
+            height_in_tile: height_in_tile as usize,
+        })
     }
 
     /// sprite returns a specified Sprite on the atlas.
-    pub fn sprite(&self, col: i32, row: i32) -> Result<&Sprite> {
-        self.store
-            .get(&(col, row))
-            .with_context(|| format!("col: {} or row: {} is out of the atlas", col, row))
+    pub fn sprite(&self, index: usize) -> Result<&Sprite> {
+        self.store.get(index).with_context(|| {
+            format!(
+                "failed to get the sprite from the atlas(width_in_tile: {}, height_in_tile: {}) by index: {}",
+                self.width_in_tile, self.height_in_tile, index
+            )
+        })
+    }
+
+    /// sprite_by_col_and_row returns a specified Sprite on the atlas.
+    pub fn sprite_by_col_and_row(&self, col: usize, row: usize) -> Result<&Sprite> {
+        ensure!(
+            col < self.width_in_tile,
+            "col: {} should be less than width_in_tile: {}",
+            col,
+            self.width_in_tile
+        );
+        ensure!(
+            row < self.height_in_tile,
+            "row: {} should be less than height_in_tile: {}",
+            row,
+            self.height_in_tile,
+        );
+        let index = col + row * self.width_in_tile;
+        self.sprite(index)
     }
 }
 

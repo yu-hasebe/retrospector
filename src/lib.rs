@@ -49,7 +49,7 @@
 //!         clear(renderer);
 //!
 //!         // You can get a sprite from a sprite_store.
-//!         if let Ok(sprite) = self.sprite_store.sprite(0, 0) {
+//!         if let Ok(sprite) = self.sprite_store.sprite(0) {
 //!             // You can use the draw_image to draw sprites at the specified location on the canvas.
 //!             draw_image(renderer, &sprite, Location::new(0.0, 0.0));
 //!         }
